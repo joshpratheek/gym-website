@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FORGE GYM — Secunderabad</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --black: #0a0a0a;
+    --dark: #111111;
+    --card: #161616;
+    --border: #222222;
+    --accent: #e01a1a;
+    --accent2: #b01010;
+    --white: #f5f5f0;
+    --muted: #888;
+    --font-head: 'Bebas Neue', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s;
+    mix-blend-mode: difference;
+  }
+  .cursor.big { width: 40px; height: 40px; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(10,10,10,0.95), transparent);
+    transition: background 0.3s;
+  }
+  nav.scrolled { background: rgba(10,10,10,0.97); border-bottom: 1px solid var(--border); }
+  .nav-logo {
+    font-family: var(--font-head); font-size: 28px;
+    letter-spacing: 4px; color: var(--white); text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 13px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-cta {
+    background: var(--accent); color: var(--black);
+    border: none; padding: 12px 28px;
+    font-family: var(--font-body); font-weight: 700; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase; cursor: none;
+    text-decoration: none; transition: background 0.2s, transform 0.2s;
+  }
+  .nav-cta:hover { background: var(--white); transform: translateY(-1px); }
+  .nav-toggle {
+    display: none; flex-direction: column; gap: 6px;
+    background: transparent; border: none; cursor: pointer; padding: 8px;
+  }
+  .nav-toggle span {
+    width: 28px; height: 2px; background: var(--white);
+    display: block; transition: all 0.25s ease;
+  }
+  .nav-toggle.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+  .nav-toggle.active span:nth-child(2) { opacity: 0; }
+  .nav-toggle.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: flex-end;
+    padding: 0 60px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 75% 50%, rgba(224,26,26,0.12), transparent 50%);
+    pointer-events: none; z-index: 2;
+  }
+  .hero-content, .hero-stats { position: relative; z-index: 3; }
+  .hero-bg, .hero-noise { z-index: 1; }
+
+  /* FIX 1: hero bg shifted right so gym interior clears the text block */
+  .hero-bg {
+    position: absolute; inset: 0;
+    background-image: url("images/forge-hero.png");
+    background-size: cover;
+    background-position: 65% center; /* was "center" — shift right */
+  }
+
+  .hero-noise {
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4; pointer-events: none;
+  }
+  .hero-line {
+    position: absolute; top: 0; bottom: 0; left: 58px; width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--accent) 40%, transparent);
+    opacity: 0.4;
+  }
+  .hero-content { position: relative; max-width: 900px; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px; font-weight: 600; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 24px;
+  }
+  .hero-tag::before { content: ''; display: block; width: 30px; height: 2px; background: var(--accent); }
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: clamp(72px, 12vw, 160px);
+    line-height: 0.9; letter-spacing: 2px; margin-bottom: 32px;
+    text-shadow: 0 0 20px rgba(224,26,26,0.15), 0 0 40px rgba(224,26,26,0.1);
+  }
+  .hero h1 .stroke { -webkit-text-stroke: 1px var(--white); color: transparent; }
+  .hero h1 .accent { color: var(--accent); }
+  .hero-sub {
+    font-size: 16px; color: var(--muted);
+    max-width: 440px; line-height: 1.7; margin-bottom: 48px;
+  }
+  .hero-actions { display: flex; gap: 20px; align-items: center; }
+  .btn-primary {
+    background: var(--accent); color: var(--white);
+    padding: 16px 40px; font-weight: 700; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase; text-decoration: none;
+    transition: all 0.2s; display: inline-block;
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
+  .btn-ghost {
+    border: 1px solid var(--border); color: var(--white);
+    padding: 16px 40px; font-weight: 600; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase; text-decoration: none;
+    transition: all 0.2s; display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .hero-stats {
+    position: absolute; right: 60px; bottom: 80px;
+    display: flex; flex-direction: column; gap: 32px; text-align: right;
+  }
+  .stat-num { font-family: var(--font-head); font-size: 48px; line-height: 1; color: var(--accent); }
+  .stat-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+  /* MARQUEE */
+  .marquee-wrap {
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    overflow: hidden; padding: 14px 0; background: var(--dark);
+  }
+  .marquee {
+    display: flex; gap: 60px;
+    animation: marquee 20s linear infinite;
+    white-space: nowrap; width: max-content;
+  }
+  .marquee span { font-family: var(--font-head); font-size: 18px; letter-spacing: 4px; color: var(--muted); text-transform: uppercase; }
+  .marquee span.acc { color: var(--accent); }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  section { padding: 120px 60px; }
+  .section-tag {
+    font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-tag::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); }
+  .section-title {
+    font-family: var(--font-head);
+    font-size: clamp(48px, 6vw, 80px);
+    line-height: 0.95; letter-spacing: 1px; margin-bottom: 60px;
+  }
+
+  .features { background: var(--dark); border-top: 1px solid var(--border); }
+  .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .feature-item {
+    padding: 48px; border: 1px solid var(--border);
+    position: relative; overflow: hidden; transition: background 0.3s;
+  }
+  .feature-item:hover { background: #1a1a1a; }
+  .feature-item::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    height: 3px; width: 0; background: var(--accent); transition: width 0.4s;
+  }
+  .feature-item:hover::before { width: 100%; }
+  .feature-num { font-family: var(--font-head); font-size: 64px; color: var(--border); line-height: 1; margin-bottom: 20px; transition: color 0.3s; }
+  .feature-item:hover .feature-num { color: var(--accent); }
+  .feature-title { font-family: var(--font-head); font-size: 28px; letter-spacing: 1px; margin-bottom: 12px; }
+  .feature-desc { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+  .programs { background: var(--black); }
+  .programs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .program-card { position: relative; overflow: hidden; aspect-ratio: 3/4; cursor: none; }
+  .program-img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.4) grayscale(30%); transition: filter 0.5s, transform 0.5s;
+  }
+  .program-card:hover .program-img { filter: brightness(0.5) grayscale(0%); transform: scale(1.05); }
+  .program-content { position: absolute; inset: 0; padding: 36px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .program-tag { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .program-name { font-family: var(--font-head); font-size: 36px; letter-spacing: 1px; margin-bottom: 12px; }
+  .program-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .program-arrow {
+    margin-top: 20px; width: 44px; height: 44px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; transition: all 0.3s;
+  }
+  .program-card:hover .program-arrow { background: var(--accent); border-color: var(--accent); color: var(--black); }
+
+  /* FIX 2: equipment band — use background-image not background shorthand */
+  .equipment-band {
+    margin-top: 70px; display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 2px; border: 1px solid var(--border); background: var(--black);
+  }
+  .equipment-img {
+    min-height: 420px;
+    background-image: url("images/equipment.png");
+    background-size: cover;
+    background-position: center;
+    /* overlay via pseudo-element so background-image isn't clobbered */
+    position: relative;
+  }
+  .equipment-img::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.55));
+  }
+  .equipment-copy { padding: 56px; display: flex; flex-direction: column; justify-content: center; }
+  .equipment-copy h3, .coach-copy h3, .facility-copy h3 {
+    font-family: var(--font-head);
+    font-size: clamp(42px, 5vw, 72px);
+    line-height: 0.95; letter-spacing: 1px; margin-bottom: 22px;
+  }
+  .equipment-copy p, .coach-copy p, .facility-copy p { color: var(--muted); font-size: 16px; line-height: 1.8; margin-bottom: 28px; }
+  .mini-points { display: grid; gap: 14px; }
+  .mini-point { border-left: 3px solid var(--accent); padding-left: 16px; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+
+  .coach-section { background: var(--dark); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .coach-grid, .facility-grid { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 60px; align-items: center; }
+  .coach-img-wrap, .facility-img-wrap { position: relative; overflow: hidden; border: 1px solid var(--border); min-height: 560px; }
+  .coach-img-wrap img, .facility-img-wrap img {
+    width: 100%; height: 100%; min-height: 560px; object-fit: cover; display: block;
+    filter: brightness(0.85) contrast(1.1); transition: transform 0.6s ease, filter 0.6s ease;
+  }
+  .coach-img-wrap:hover img, .facility-img-wrap:hover img { transform: scale(1.04); filter: brightness(1) contrast(1.15); }
+  .coach-badge {
+    display: inline-block; background: var(--accent); color: var(--black);
+    padding: 8px 14px; font-size: 11px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 22px;
+  }
+  .coach-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 32px; }
+  .coach-stat { border: 1px solid var(--border); padding: 24px; background: var(--card); }
+  .coach-stat strong { display: block; font-family: var(--font-head); font-size: 42px; color: var(--accent); line-height: 1; margin-bottom: 8px; }
+  .coach-stat span { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  .facility-section { background: var(--black); }
+  .facility-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .facility-img-wrap { min-height: 480px; }
+  .facility-img-wrap img { min-height: 480px; }
+
+  .pricing { background: var(--dark); border-top: 1px solid var(--border); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .plan-card { background: var(--card); padding: 48px 40px; border: 1px solid var(--border); position: relative; overflow: hidden; transition: border-color 0.3s; }
+  .plan-card.featured { border-color: var(--accent); }
+  .plan-card.featured::before {
+    content: 'MOST POPULAR'; position: absolute; top: 20px; right: -30px;
+    background: var(--accent); color: var(--black);
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    padding: 6px 48px; transform: rotate(45deg);
+  }
+  .plan-name { font-family: var(--font-head); font-size: 32px; letter-spacing: 2px; margin-bottom: 8px; }
+  .plan-desc { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+  .plan-price { display: flex; align-items: baseline; gap: 6px; margin-bottom: 32px; }
+  .plan-price .currency { font-size: 20px; color: var(--muted); }
+  .plan-price .amount { font-family: var(--font-head); font-size: 64px; line-height: 1; color: var(--white); }
+  .plan-price .period { font-size: 14px; color: var(--muted); }
+  .plan-features { list-style: none; margin-bottom: 40px; }
+  .plan-features li { padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  .plan-features li::before { content: '→'; color: var(--accent); font-size: 12px; }
+  .plan-features li.active { color: var(--white); }
+  .plan-btn { display: block; text-align: center; padding: 16px; border: 1px solid var(--border); color: var(--white); text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; transition: all 0.2s; }
+  .plan-btn:hover, .plan-card.featured .plan-btn { background: var(--accent); border-color: var(--accent); color: var(--black); }
+
+  .testimonials { background: var(--black); }
+  .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .testi-card { background: var(--card); padding: 36px; border: 1px solid var(--border); position: relative; }
+  .testi-quote { font-family: var(--font-head); font-size: 80px; line-height: 0.6; color: var(--accent); opacity: 0.3; margin-bottom: 16px; }
+  .testi-text { font-size: 15px; line-height: 1.8; color: var(--muted); margin-bottom: 28px; font-style: italic; }
+  .testi-author { display: flex; align-items: center; gap: 14px; }
+  .testi-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-size: 20px; color: var(--accent); }
+  .testi-name { font-weight: 700; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+  .testi-role { font-size: 12px; color: var(--muted); }
+
+  .cta-section { padding: 120px 60px; background: var(--accent); text-align: center; }
+  .cta-section .section-title { color: var(--white); margin-bottom: 20px; }
+  .cta-section p { color: rgba(255,255,255,0.7); font-size: 18px; margin-bottom: 48px; }
+  .btn-dark { background: var(--black); color: var(--white); padding: 18px 56px; font-weight: 700; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; display: inline-block; transition: all 0.2s; }
+  .btn-dark:hover { background: var(--dark); transform: translateY(-2px); }
+
+  .contact { background: var(--dark); border-top: 1px solid var(--border); }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+  .contact-info h3 { font-family: var(--font-head); font-size: 48px; letter-spacing: 1px; margin-bottom: 24px; }
+  .contact-info p { color: var(--muted); font-size: 16px; line-height: 1.7; margin-bottom: 40px; }
+  .contact-detail { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+  .contact-icon { width: 44px; height: 44px; min-width: 44px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .contact-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .contact-value { font-size: 15px; margin-top: 4px; }
+  .contact-form { display: flex; flex-direction: column; gap: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-group label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .form-group input, .form-group select, .form-group textarea { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 14px 16px; font-family: var(--font-body); font-size: 14px; outline: none; transition: border-color 0.2s; resize: none; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+  .form-group select option { background: var(--card); }
+  .form-submit { background: var(--accent); color: var(--white); border: none; padding: 16px; font-family: var(--font-body); font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: none; transition: all 0.2s; }
+  .form-submit:hover { background: var(--accent2); }
+
+  footer { background: var(--black); border-top: 1px solid var(--border); padding: 48px 60px; display: flex; align-items: center; justify-content: space-between; }
+  .footer-logo { font-family: var(--font-head); font-size: 24px; letter-spacing: 4px; }
+  .footer-logo span { color: var(--accent); }
+  .footer-copy { font-size: 13px; color: var(--muted); }
+  .footer-links { display: flex; gap: 32px; }
+  .footer-links a { color: var(--muted); text-decoration: none; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--accent); }
+
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ─── MOBILE ────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    body { cursor: auto; }
+    .cursor { display: none; }
+
+    nav {
+      height: 68px;
+      padding: 16px 20px;
+      background: rgba(10,10,10,0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .nav-logo { font-size: 24px; letter-spacing: 3px; }
+    .nav-cta { display: none; }
+    .nav-toggle { display: flex; z-index: 110; }
+    .nav-links {
+      position: fixed; top: 68px; left: 0; width: 100%;
+      background: rgba(10,10,10,0.98);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: none; flex-direction: column;
+      gap: 0; padding: 8px 20px 16px; z-index: 105;
+    }
+    .nav-links.active { display: flex; }
+    .nav-links li { padding: 15px 0; border-bottom: 1px solid var(--border); }
+    .nav-links li:last-child { border-bottom: none; }
+    .nav-links a { display: block; font-size: 14px; letter-spacing: 3px; color: var(--white); }
+
+    /* HERO mobile */
+    .hero {
+      min-height: 100svh;
+      padding: 0;
+      align-items: flex-end;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    /* On mobile keep bg centred — cramping is less of an issue at narrow widths */
+    .hero-bg {
+      background-position: center top;
+    }
+
+    /* Stronger bottom overlay so text is always readable */
+    .hero::after {
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.1)  0%,
+        rgba(0,0,0,0.35) 35%,
+        rgba(0,0,0,0.75) 65%,
+        rgba(0,0,0,0.92) 100%
+      );
+      z-index: 2;
+    }
+
+    .hero-line, .hero-stats { display: none; }
+
+    .hero-content {
+      max-width: 100%; width: 100%;
+      padding: 0 20px 44px;
+      /* safe gap from nav */
+      padding-top: max(96px, env(safe-area-inset-top, 0px) + 80px);
+    }
+
+    .hero-tag { font-size: 10px; letter-spacing: 2.5px; margin-bottom: 16px; }
+
+    .hero h1 {
+      font-size: clamp(58px, 19vw, 96px);
+      line-height: 0.88; margin-bottom: 18px;
+    }
+
+    .hero-sub {
+      font-size: 15px; line-height: 1.7;
+      max-width: 100%; margin-bottom: 14px;
+      color: rgba(245,245,240,0.75);
+    }
+
+    /* Inline stats strip — replaces hidden sidebar */
+    .hero-inline-stats {
+      display: flex; gap: 0; margin-bottom: 24px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 0;
+    }
+    .hero-inline-stat {
+      flex: 1; text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 0;
+    }
+    .hero-inline-stat:last-child { border-right: none; }
+    .hero-inline-stat .s-num {
+      font-family: var(--font-head); font-size: 24px; line-height: 1;
+      color: var(--accent); display: block;
+    }
+    .hero-inline-stat .s-lbl {
+      font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.45); display: block; margin-top: 2px;
+    }
+
+    .hero-actions { flex-direction: column; align-items: stretch; gap: 10px; width: 100%; }
+    .btn-primary, .btn-ghost { width: 100%; text-align: center; padding: 17px 24px; font-size: 13px; }
+    .btn-ghost { border-color: rgba(255,255,255,0.4); }
+
+    section { padding: 72px 20px; }
+    .section-title { margin-bottom: 40px; }
+
+    .features-grid,
+    .programs-grid,
+    .pricing-grid,
+    .testi-grid,
+    .contact-grid,
+    .equipment-band,
+    .coach-grid,
+    .facility-grid { grid-template-columns: 1fr; }
+
+    .coach-stats { grid-template-columns: repeat(3, 1fr); }
+
+    .program-card { aspect-ratio: 4/5; }
+    .form-row { grid-template-columns: 1fr; }
+
+    .equipment-copy { padding: 28px 20px; }
+    .equipment-img { min-height: 260px; }
+
+    .coach-img-wrap, .coach-img-wrap img,
+    .facility-img-wrap, .facility-img-wrap img { min-height: 300px; }
+    .coach-grid, .facility-grid { gap: 28px; }
+    .coach-stat { padding: 18px 12px; }
+    .coach-stat strong { font-size: 30px; }
+
+    .cta-section { padding: 80px 20px; }
+
+    footer { flex-direction: column; gap: 20px; text-align: center; padding: 40px 20px; }
+    .footer-links { flex-wrap: wrap; justify-content: center; gap: 20px; }
+
+    .feature-item { padding: 32px 20px; }
+    .plan-card { padding: 30px 20px; }
+    .testi-card { padding: 28px 20px; }
+  }
+
+  @media (max-width: 480px) {
+    nav { padding: 14px 16px; }
+    .hero h1 { font-size: clamp(52px, 21vw, 80px); }
+    .hero-sub { font-size: 14px; }
+    .hero-inline-stat .s-num { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<nav id="navbar">
+  <a href="#" class="nav-logo">FORGE<span>.</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#programs">Programs</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#coach">Coach</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Join Now</a>
+  <button class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<section class="hero" id="home">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-noise"></div>
+  <div class="hero-line"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Est. 2018 · Secunderabad</div>
+    <h1>
+      BUILT<br>
+      <span class="stroke">TO BE</span><br>
+      <span class="accent">FORGED.</span>
+    </h1>
+    <p class="hero-sub">Secunderabad's most serious training facility. No fluff, no gimmicks — just iron, sweat, and results that last.</p>
+    <!-- Mobile-only inline stats -->
+    <div class="hero-inline-stats" id="inlineStats">
+      <div class="hero-inline-stat"><span class="s-num">1200+</span><span class="s-lbl">Members</span></div>
+      <div class="hero-inline-stat"><span class="s-num">18</span><span class="s-lbl">Coaches</span></div>
+      <div class="hero-inline-stat"><span class="s-num">6Y</span><span class="s-lbl">Operating</span></div>
+    </div>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">Start Free Trial</a>
+      <a href="#programs" class="btn-ghost">View Programs</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div><div class="stat-num">1200+</div><div class="stat-label">Active Members</div></div>
+    <div><div class="stat-num">18</div><div class="stat-label">Expert Coaches</div></div>
+    <div><div class="stat-num">6Y</div><div class="stat-label">Years Operating</div></div>
+  </div>
+</section>
+
+<div class="marquee-wrap">
+  <div class="marquee">
+    <span>Strength Training</span><span class="acc">✦</span>
+    <span>HIIT Classes</span><span class="acc">✦</span>
+    <span>Personal Training</span><span class="acc">✦</span>
+    <span>Nutrition Plans</span><span class="acc">✦</span>
+    <span>Cardio Zone</span><span class="acc">✦</span>
+    <span>CrossFit</span><span class="acc">✦</span>
+    <span>Yoga & Recovery</span><span class="acc">✦</span>
+    <span>Boxing</span><span class="acc">✦</span>
+    <span>Strength Training</span><span class="acc">✦</span>
+    <span>HIIT Classes</span><span class="acc">✦</span>
+    <span>Personal Training</span><span class="acc">✦</span>
+    <span>Nutrition Plans</span><span class="acc">✦</span>
+    <span>Cardio Zone</span><span class="acc">✦</span>
+    <span>CrossFit</span><span class="acc">✦</span>
+    <span>Yoga & Recovery</span><span class="acc">✦</span>
+    <span>Boxing</span><span class="acc">✦</span>
+  </div>
+</div>
+
+<section class="features" id="about">
+  <div class="section-tag">Why Forge</div>
+  <h2 class="section-title">TRAIN WITH<br>PURPOSE.</h2>
+  <div class="features-grid">
+    <div class="feature-item reveal">
+      <div class="feature-num">01</div>
+      <div class="feature-title">Elite Equipment</div>
+      <p class="feature-desc">Over ₹80L invested in premium strength and conditioning equipment. Rogue racks, Hammer Strength machines, Olympic platforms — the real deal.</p>
+    </div>
+    <div class="feature-item reveal reveal-delay-1">
+      <div class="feature-num">02</div>
+      <div class="feature-title">Certified Coaches</div>
+      <p class="feature-desc">Every coach at Forge holds a national certification and minimum 5 years of coaching experience. Your progress is guided by professionals who've seen it all.</p>
+    </div>
+    <div class="feature-item reveal reveal-delay-2">
+      <div class="feature-num">03</div>
+      <div class="feature-title">24/7 Access</div>
+      <p class="feature-desc">Train on your schedule. Our facility is open around the clock with secure biometric entry. No waiting, no excuses, no limits.</p>
+    </div>
+    <div class="feature-item reveal reveal-delay-3">
+      <div class="feature-num">04</div>
+      <div class="feature-title">Community First</div>
+      <p class="feature-desc">A culture built on respect, consistency, and mutual growth. From first-timers to competitive athletes — everyone belongs here.</p>
+    </div>
+  </div>
+  <div class="equipment-band reveal">
+    <div class="equipment-img"></div>
+    <div class="equipment-copy">
+      <div class="section-tag">Built for Performance</div>
+      <h3>REAL IRON.<br>REAL RESULTS.</h3>
+      <p>From heavy compound lifts to conditioning work, Forge is designed for people who take training seriously. Every corner of the facility is built to support strength, progress, and consistency.</p>
+      <div class="mini-points">
+        <div class="mini-point">Premium strength equipment</div>
+        <div class="mini-point">Dedicated lifting zones</div>
+        <div class="mini-point">Clean, focused training environment</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="programs" id="programs">
+  <div class="section-tag">What We Offer</div>
+  <h2 class="section-title reveal">OUR<br>PROGRAMS.</h2>
+  <div class="programs-grid">
+    <div class="program-card reveal">
+      <img src="images/strength-training.png" alt="Strength Training" class="program-img">
+      <div class="program-content">
+        <div class="program-tag">Foundation</div>
+        <div class="program-name">STRENGTH<br>TRAINING</div>
+        <p class="program-desc">Progressive overload, compound lifts, and periodised programming for real muscle and strength gains.</p>
+        <div class="program-arrow">→</div>
+      </div>
+    </div>
+    <div class="program-card reveal reveal-delay-1">
+      <img src="images/cardio.png" alt="HIIT & Cardio" class="program-img">
+      <div class="program-content">
+        <div class="program-tag">High Intensity</div>
+        <div class="program-name">HIIT &<br>CARDIO</div>
+        <p class="program-desc">Metabolic conditioning classes that burn fat, build endurance, and push your limits every session.</p>
+        <div class="program-arrow">→</div>
+      </div>
+    </div>
+    <div class="program-card reveal reveal-delay-2">
+      <img src="images/personal.png" alt="Personal Training" class="program-img">
+      <div class="program-content">
+        <div class="program-tag">1-on-1</div>
+        <div class="program-name">PERSONAL<br>TRAINING</div>
+        <p class="program-desc">Fully customised programming and dedicated coaching. Fastest path to your goals, period.</p>
+        <div class="program-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="coach-section" id="coach">
+  <div class="coach-grid">
+    <div class="coach-img-wrap reveal">
+      <img src="images/trainer.png" alt="Rahul Sharma - Founder and Head Coach">
+    </div>
+    <div class="coach-copy reveal reveal-delay-1">
+      <div class="section-tag">Meet Your Coach</div>
+      <span class="coach-badge">Founder & Head Coach</span>
+      <h3>RAHUL<br>SHARMA.</h3>
+      <p>Rahul leads Forge with a simple belief: training should be disciplined, structured, and built around real progress. His coaching approach focuses on correct form, consistent programming, and helping members build strength that lasts.</p>
+      <p>Whether you're stepping into the gym for the first time or preparing for advanced strength goals, Forge gives you the guidance, environment, and accountability to train with purpose.</p>
+      <div class="coach-stats">
+        <div class="coach-stat"><strong>10+</strong><span>Years Coaching</span></div>
+        <div class="coach-stat"><strong>500+</strong><span>Members Guided</span></div>
+        <div class="coach-stat"><strong>1:1</strong><span>Personal Focus</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="section-tag">Membership</div>
+  <h2 class="section-title reveal">PICK YOUR<br>PLAN.</h2>
+  <div class="pricing-grid">
+    <div class="plan-card reveal">
+      <div class="plan-name">BASIC</div>
+      <div class="plan-desc">Perfect for self-directed training</div>
+      <div class="plan-price"><span class="currency">₹</span><span class="amount">999</span><span class="period">/month</span></div>
+      <ul class="plan-features">
+        <li class="active">Full gym access</li>
+        <li class="active">Locker room & showers</li>
+        <li class="active">Group HIIT classes (2/week)</li>
+        <li>Personal training sessions</li>
+        <li>Nutrition consultation</li>
+        <li>Guest passes</li>
+      </ul>
+      <a href="#contact" class="plan-btn">Get Started</a>
+    </div>
+    <div class="plan-card featured reveal reveal-delay-1">
+      <div class="plan-name">PRO</div>
+      <div class="plan-desc">Most popular for serious athletes</div>
+      <div class="plan-price"><span class="currency">₹</span><span class="amount">1999</span><span class="period">/month</span></div>
+      <ul class="plan-features">
+        <li class="active">Full gym access — 24/7</li>
+        <li class="active">Locker room & showers</li>
+        <li class="active">Unlimited group classes</li>
+        <li class="active">2 PT sessions/month</li>
+        <li class="active">Monthly nutrition check-in</li>
+        <li>Guest passes</li>
+      </ul>
+      <a href="#contact" class="plan-btn">Get Started</a>
+    </div>
+    <div class="plan-card reveal reveal-delay-2">
+      <div class="plan-name">ELITE</div>
+      <div class="plan-desc">Full-service coaching experience</div>
+      <div class="plan-price"><span class="currency">₹</span><span class="amount">3999</span><span class="period">/month</span></div>
+      <ul class="plan-features">
+        <li class="active">Everything in Pro</li>
+        <li class="active">8 PT sessions/month</li>
+        <li class="active">Custom training program</li>
+        <li class="active">Full nutrition plan</li>
+        <li class="active">Body composition tracking</li>
+        <li class="active">4 guest passes/month</li>
+      </ul>
+      <a href="#contact" class="plan-btn">Get Started</a>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <div class="section-tag">Members</div>
+  <h2 class="section-title reveal">REAL<br>RESULTS.</h2>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">Joined Forge 8 months ago at 98kg with zero training background. Down to 78kg and genuinely stronger than I've ever been. The coaches actually care about your progress.</p>
+      <div class="testi-author"><div class="testi-avatar">R</div><div><div class="testi-name">Rahul Sharma</div><div class="testi-role">Member since 2024</div></div></div>
+    </div>
+    <div class="testi-card reveal reveal-delay-1">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">Best gym in Secunderabad, no competition. Equipment is always maintained, coaches are knowledgeable, and the atmosphere pushes you to work harder every single session.</p>
+      <div class="testi-author"><div class="testi-avatar">P</div><div><div class="testi-name">Priya Reddy</div><div class="testi-role">Member since 2023</div></div></div>
+    </div>
+    <div class="testi-card reveal reveal-delay-2">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">Competed in my first powerlifting meet 6 months after joining. The programming my coach built was exceptional. I hit three PRs on competition day.</p>
+      <div class="testi-author"><div class="testi-avatar">A</div><div><div class="testi-name">Aditya Nair</div><div class="testi-role">Elite Member</div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-section">
+  <h2 class="section-title">READY TO<br>START?</h2>
+  <p>First 7 days completely free. No commitment, no credit card.</p>
+  <a href="#contact" class="btn-dark">Claim Free Trial</a>
+</div>
+
+<section class="facility-section" id="facility">
+  <div class="facility-grid">
+    <div class="facility-copy reveal">
+      <div class="section-tag">Visit Our Facility</div>
+      <h3>TRAIN IN A<br>SERIOUS SPACE.</h3>
+      <p>Forge is built for members who want a focused, no-excuses training environment. From the moment you walk in, the space is designed to feel intense, premium, and performance-driven.</p>
+      <div class="mini-points">
+        <div class="mini-point">Located in Secunderabad</div>
+        <div class="mini-point">24/7 member access</div>
+        <div class="mini-point">Free trial available</div>
+      </div>
+    </div>
+    <div class="facility-img-wrap reveal reveal-delay-1">
+      <img src="images/gym-ext.png" alt="Forge Gym exterior">
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="contact-grid">
+    <div class="contact-info reveal">
+      <div class="section-tag">Get In Touch</div>
+      <h3>LET'S GET<br>YOU STARTED.</h3>
+      <p>Drop us your details and we'll reach out within a few hours to set up your free trial or answer any questions.</p>
+      <div class="contact-detail">
+        <div class="contact-icon">📍</div>
+        <div><div class="contact-label">Location</div><div class="contact-value">Secunderabad, Telangana</div></div>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-icon">📞</div>
+        <div><div class="contact-label">Phone</div><div class="contact-value">+91 63097 72853</div></div>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-icon">🕐</div>
+        <div><div class="contact-label">Hours</div><div class="contact-value">Open 24/7 for members</div></div>
+      </div>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <form class="contact-form" onsubmit="handleSubmit(event)">
+        <div class="form-row">
+          <div class="form-group"><label>Full Name</label><input type="text" placeholder="Your name" required/></div>
+          <div class="form-group"><label>Phone</label><input type="tel" placeholder="+91 XXXXX XXXXX" required/></div>
+        </div>
+        <div class="form-group">
+          <label>Interested In</label>
+          <select>
+            <option>Free Trial Visit</option>
+            <option>Basic Membership</option>
+            <option>Pro Membership</option>
+            <option>Elite / Personal Training</option>
+            <option>Just looking around</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Message (optional)</label>
+          <textarea rows="4" placeholder="Any questions or goals you'd like to share..."></textarea>
+        </div>
+        <button type="submit" class="form-submit">Send Enquiry →</button>
+        <div id="success-msg" style="display:none; color: var(--accent); font-size:14px; letter-spacing:1px; margin-top:8px;">✓ Received! We'll be in touch shortly.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">FORGE<span>.</span></div>
+  <div class="footer-copy">© 2026 Forge Gym, Secunderabad. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#home">Home</a>
+    <a href="#programs">Programs</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#coach">Coach</a>
+    <a href="#contact">Contact</a>
+  </div>
+</footer>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+  document.querySelectorAll('a, button, .program-card, .feature-item').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+  });
+
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+    navToggle.classList.toggle('active');
+    navToggle.setAttribute('aria-expanded', navLinks.classList.contains('active') ? 'true' : 'false');
+  });
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+      navLinks.classList.remove('active');
+      navToggle.classList.remove('active');
+      navToggle.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // Parallax desktop only — prevents iOS scroll jank
+  const heroBg = document.getElementById('heroBg');
+  const isMobile = () => window.innerWidth <= 900;
+  window.addEventListener('scroll', () => {
+    if (!isMobile()) heroBg.style.transform = `translateY(${window.scrollY * 0.3}px)`;
+    else heroBg.style.transform = 'none';
+  }, { passive: true });
+
+  // Hide inline stats on desktop
+  const inlineStats = document.getElementById('inlineStats');
+  function syncStats() {
+    inlineStats.style.display = isMobile() ? 'flex' : 'none';
+  }
+  syncStats();
+  window.addEventListener('resize', syncStats);
+
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    document.getElementById('success-msg').style.display = 'block';
+    e.target.reset();
+  }
+</script>
+</body>
+</html>
