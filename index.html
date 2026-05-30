@@ -375,17 +375,18 @@
 
     /* HERO mobile */
     .hero {
-      min-height: 100svh;
-      padding: 0;
-      align-items: flex-end;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
+  min-height: 100svh;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
     /* On mobile keep bg centred — cramping is less of an issue at narrow widths */
     .hero-bg {
-      background-position: center top;
-    }
+  background-position: 35% top;
+}
+
 
     /* Stronger bottom overlay so text is always readable */
     .hero::after {
@@ -402,24 +403,21 @@
     .hero-line, .hero-stats { display: none; }
 
     .hero-content {
-      max-width: 100%; width: 100%;
-      padding: 0 20px 44px;
-      /* safe gap from nav */
-      padding-top: max(96px, env(safe-area-inset-top, 0px) + 80px);
-    }
+  width: 100%;
+  padding: 105px 20px 55px;
+}
 
     .hero-tag { font-size: 10px; letter-spacing: 2.5px; margin-bottom: 16px; }
 
     .hero h1 {
-      font-size: clamp(58px, 19vw, 96px);
-      line-height: 0.88; margin-bottom: 18px;
-    }
+  font-size: clamp(56px, 19vw, 88px);
+  line-height: 0.88;
+  margin-bottom: 20px;
+}
 
     .hero-sub {
-      font-size: 15px; line-height: 1.7;
-      max-width: 100%; margin-bottom: 14px;
-      color: rgba(245,245,240,0.75);
-    }
+  margin-bottom: 18px;
+}
 
     /* Inline stats strip — replaces hidden sidebar */
     .hero-inline-stats {
