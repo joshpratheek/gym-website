@@ -100,12 +100,18 @@
   .hero-bg, .hero-noise { z-index: 1; }
 
   /* FIX 1: hero bg shifted right so gym interior clears the text block */
-  .hero-bg {
-    position: absolute; inset: 0;
+.hero-bg {
+    position: absolute;
+    inset: 0;
+
     background-image: url("images/forge-hero.png");
     background-size: cover;
-    background-position: 65% center; /* was "center" — shift right */
-  }
+    background-position: 35% top;
+    background-repeat: no-repeat;
+
+    transform: scale(1.03);
+    transition: transform 8s ease;
+}
 
   .hero-noise {
     position: absolute; inset: 0;
