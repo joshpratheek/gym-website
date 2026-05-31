@@ -87,10 +87,17 @@
   /* HERO */
   .hero {
     min-height: 100vh;
-    display: flex; align-items: flex-end;
-    padding: 0 60px 80px;
-    position: relative; overflow: hidden;
-  }
+
+    display: flex;
+    align-items: center;      /* was flex-end */
+    justify-content: flex-start;
+
+    padding: 110px 60px 80px; /* top padding clears navbar */
+
+    position: relative;
+    overflow: hidden;
+}
+
   .hero::after {
     content: ""; position: absolute; inset: 0;
     background: radial-gradient(circle at 75% 50%, rgba(224,26,26,0.12), transparent 50%);
@@ -123,7 +130,13 @@
     background: linear-gradient(to bottom, transparent, var(--accent) 40%, transparent);
     opacity: 0.4;
   }
-  .hero-content { position: relative; max-width: 900px; }
+  .hero-content {
+    position: relative;
+    max-width: 900px;
+
+    margin-top: -40px;
+}
+
   .hero-tag {
     display: inline-flex; align-items: center; gap: 10px;
     font-size: 12px; font-weight: 600; letter-spacing: 3px;
